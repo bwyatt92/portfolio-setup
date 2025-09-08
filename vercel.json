@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "apps/center-dashboard/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "apps/center-dashboard/dist"
+      }
+    }
+  ]
+}

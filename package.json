@@ -6,12 +6,12 @@
     "apps/*"
   ],
   "scripts": {
-    "build": "cd apps/center-dashboard && npm ci && npm run build",
+    "build": "cd apps/center-dashboard && npm install && npm run build",
     "dev": "cd apps/center-dashboard && npm run dev",
     "dev:center": "cd apps/center-dashboard && npm run dev",
     "dev:energy": "cd apps/energy-dashboard && npm run dev",
-    "build:center": "cd apps/center-dashboard && npm ci && npm run build",
-    "build:energy": "cd apps/energy-dashboard && npm ci && npm run build"
+    "build:center": "cd apps/center-dashboard && npm install && npm run build",
+    "build:energy": "cd apps/energy-dashboard && npm install && npm run build"
   },
   "devDependencies": {},
   "description": "Monorepo containing multiple dashboard applications for Vercel deployment"

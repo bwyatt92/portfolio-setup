@@ -1,17 +1,16 @@
 {
-  "name": "center-dashboard",
+  "name": "portfolio-monorepo",
+  "version": "1.0.0",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev:center": "cd apps/center-dashboard && npm run dev",
+    "dev:energy": "cd apps/energy-dashboard && npm run dev",
+    "build:center": "cd apps/center-dashboard && npm run build",
+    "build:energy": "cd apps/energy-dashboard && npm run build"
   },
-  "devDependencies": {
-    "vite": "^7.1.2"
-  },
-  "dependencies": {
-    "apexcharts": "^5.3.5"
-  }
+  "devDependencies": {},
+  "description": "Monorepo containing multiple dashboard applications for Vercel deployment"
 }

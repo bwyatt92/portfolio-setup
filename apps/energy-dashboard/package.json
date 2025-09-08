@@ -1,0 +1,13 @@
+{
+  "name": "energy-analytics-dashboard",
+  "version": "1.0.0",
+  "description": "Interactive energy consumption and demand analytics dashboard built with Apex Charts",
+  "main": "index.html",
+  "scripts": {
+    "dev": "python -m http.server 3000",
+    "build": "echo 'Static site ready for deployment'"
+  },
+  "keywords": ["energy", "analytics", "dashboard", "apex-charts", "javascript", "portfolio"],
+  "author": "Your Name",
+  "license": "MIT"
+}

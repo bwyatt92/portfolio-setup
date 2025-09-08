@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<!-- @noSnoop -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Energy Analytics Dashboard</title>
+
+  <!-- CDN Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css">
+
+  <style>
+    * { 
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      padding: 1em 2em;
+      font-family: 'Arial', sans-serif;
+      background-color: #111;
+      color: #eee;
+      line-height: 1.6;
+    }
+    
+    /* Header Styles */
+    .topBar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background-color: #111;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+      padding: 1rem 0;
+      transition: all 0.3s ease;
+    }
+    
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+    
+    header.shrink {
+      padding: 0.5rem 0;
+    }
+    
+    .header-title {
+      margin: 0;
+      color: #00e5ff;
+      font-size: 1.8rem;
+      transition: all 0.3s ease;
+    }
+    
+    header.shrink .header-title {
+      font-size: 1.4rem;
+    }
+    
+    /* Control Panel */
+    .control-panel {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .control-row:last-child {
+      margin-bottom: 0;
+    }
+    
+    .control-group {
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .control-label {
+      display: block;
+      color: #00e5ff;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+    
+    /* Input Styles */
+    .input-text {
+      background-color: #222;
+      color: #eee;
+      border: 1px solid #444;
+      height: 40px;
+      padding: 0.5rem 1rem;
+      width: 100%;
+      font-size: 0.9rem;
+      border-radius: 4px;
+      transition: border-color 0.2s;
+    }
+    
+    .input-text:focus {
+      outline: none;
+      border-color: #00e5ff;
+    }
+    
+    select {
+      background-color: #222;
+      color: #eee;
+      border: 1px solid #444;
+      height: 40px;
+      padding: 0.5rem 1rem;
+      width: 100%;
+      font-size: 0.9rem;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    select:focus {
+      outline: none;
+      border-color: #00e5ff;
+    }
+    
+    /* Button Styles */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+      padding: 0 1.5rem;
+      background-color: #00e5ff;
+      color: #000;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .btn:hover {
+      background-color: #00cce5;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 229, 255, 0.3);
+    }
+    
+    .btn:active {
+      transform: translateY(0);
+    }
+    
+    .btn-secondary {
+      background-color: transparent;
+      color: #00e5ff;
+      border: 1px solid #444;
+    }
+    
+    .btn-secondary:hover {
+      background-color: rgba(0, 229, 255, 0.1);
+      box-shadow: none;
+    }
+    
+    /* Toggle Button Group */
+    .toggle-group {
+      display: flex;
+      border: 1px solid #444;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .toggle-btn {
+      flex: 1;
+      background: #222;
+      color: #ccc;
+      border: none;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+    
+    .toggle-btn.active {
+      background: #00e5ff;
+      color: #000;
+      font-weight: bold;
+    }
+    
+    .toggle-btn:not(.active):hover {
+      background: #333;
+    }
+    
+    /* Date Range Picker */
+    .date-range-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+    
+    .date-input-group {
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .date-input-wrapper {
+      position: relative;
+      display: flex;
+    }
+    
+    .calendar-btn {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE5IDNINUMzLjkgMyAzIDMuOSAzIDVWMTlDMyAyMC4xIDMuOSAyMSA1IDIxSDE5QzIwLjEgMjEgMjEgMjAuMSAyMSAxOVY1QzIxIDMuOSAyMC4xIDMgMTkgM1pNMTkgMTlINVY4SDE5VjE5Wk03IDE2SDE0VjlIN1YxNloiIGZpbGw9IiNjY2NjY2MiLz4KPHN2Zz4K);
+      background-repeat: no-repeat;
+      background-size: 24px 24px;
+      background-position: center;
+      background-color: transparent;
+      border: none;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    
+    .calendar-btn:hover {
+      opacity: 1;
+    }
+    
+    /* Quick Range Dropdown */
+    .quick-range-dropdown {
+      position: absolute;
+      background: #222;
+      border: 1px solid #444;
+      border-radius: 4px;
+      z-index: 100;
+      min-width: 180px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      display: none;
+    }
+    
+    .quick-range-item {
+      display: block;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: transparent;
+      border: none;
+      color: #eee;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .quick-range-item:hover {
+      background: #333;
+      color: #00e5ff;
+    }
+    
+    /* Chart Container */
+    .chart-container {
+      width: 100%;
+      height: 500px;
+      background-color: #0a0a0a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    
+    #chart {
+      width: 100%;
+      height: 100%;
+    }
+    
+    .apexcharts-canvas {
+      background-color: transparent !important;
+    }
+    
+    /* Axis Styles */
+    .axis path,
+    .axis line {
+      fill: none;
+      stroke: #555;
+      shape-rendering: crispEdges;
+    }
+    
+    .axis text {
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      fill: #999;
+    }
+    
+    /* Tooltip */
+    #tooltip {
+      position: absolute;
+      display: none;
+      padding: 0.75rem 1rem;
+      background: #222;
+      color: #00e5ff;
+      border: 1px solid #444;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      pointer-events: none;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    
+    #tooltip strong {
+      color: #fff;
+    }
+    
+    /* Flatpickr Dark Theme Overrides */
+    .flatpickr-calendar {
+      background: #222 !important;
+      border: 1px solid #444 !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+    }
+    
+    .flatpickr-calendar .flatpickr-months {
+      background: #222 !important;
+    }
+    
+    .flatpickr-calendar .flatpickr-month {
+      background: #222 !important;
+      color: #eee !important;
+    }
+    
+    .flatpickr-calendar .flatpickr-current-month {
+      color: #00e5ff !important;
+    }
+    
+    .flatpickr-calendar .flatpickr-weekday {
+      background: #333 !important;
+      color: #ccc !important;
+    }
+    
+    .flatpickr-calendar .flatpickr-day {
+      color: #eee !important;
+    }
+    
+    .flatpickr-calendar .flatpickr-day:hover {
+      background: #444 !important;
+      color: #00e5ff !important;
+    }
+    
+    .flatpickr-calendar .flatpickr-day.selected {
+      background: #00e5ff !important;
+      color: #000 !important;
+    }
+    
+    .flatpickr-calendar .flatpickr-day.today {
+      border: 1px solid #00e5ff !important;
+      color: #00e5ff !important;
+    }
+    
+    .flatpickr-calendar .flatpickr-day.today.selected {
+      background: #00e5ff !important;
+      color: #000 !important;
+    }
+    
+    .flatpickr-calendar .flatpickr-prev-month,
+    .flatpickr-calendar .flatpickr-next-month {
+      color: #777 !important;
+    }
+    
+    .flatpickr-calendar .flatpickr-prev-month:hover,
+    .flatpickr-calendar .flatpickr-next-month:hover {
+      color: #00e5ff !important;
+    }
+    
+    .flatpickr-calendar .numInputWrapper:hover {
+      background: #333 !important;
+    }
+    
+    .flatpickr-calendar .flatpickr-monthDropdown-months {
+      background: #222 !important;
+      color: #eee !important;
+    }
+    
+    /* Empty State */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #777;
+      text-align: center;
+      padding: 2rem;
+    }
+    
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: #444;
+    }
+    
+    .btn:disabled {
+      background-color: #333 !important;
+      color: #777 !important;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+    
+    .btn.highlight {
+      background-color: #00e5ff !important;
+      color: #000 !important;
+      animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(0, 229, 255, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0); }
+    }
+    
+    /* Meter buttons specific styles */
+    .meter-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      border: none;
+      background: transparent;
+      padding: 0;
+    }
+    
+    .meter-btn {
+      padding: 0.5rem 1rem;
+      background: #222;
+      color: #ccc;
+      border: 1px solid #444;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.9rem;
+    }
+    
+    .meter-btn.active {
+      background: #00e5ff;
+      color: #000;
+      font-weight: bold;
+      border-color: #00e5ff;
+    }
+    
+    .meter-btn:not(.active):hover {
+      background: #333;
+      border-color: #555;
+    }
+    
+    .meter-buttons-loading {
+      color: #777;
+      font-style: italic;
+      padding: 0.5rem 0;
+    }
+    
+    /* View Toggle Styles */
+    .view-toggle-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .view-toggle-label {
+      color: #00e5ff;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+    
+    /* Legend Styles */
+    .legend {
+      font-size: 12px;
+    }
+    
+    .legend-item {
+      cursor: pointer;
+      opacity: 0.7;
+    }
+    
+    .legend-item:hover {
+      opacity: 1;
+    }
+    
+    .legend-item.hidden {
+      opacity: 0.3;
+    }
+    
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+      body {
+        padding: 1em;
+      }
+      
+      .control-row {
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .date-range-container {
+        flex-direction: column;
+      }
+      
+      .chart-container {
+        height: 400px;
+      }
+      
+      .meter-buttons {
+        flex-direction: column;
+      }
+    }
+    .summary-banner {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .summary-item {
+      flex: 1;
+      min-width: 200px;
+    }
+    .summary-label {
+      color: #00e5ff;
+      font-weight: bold;
+      font-size: 0.9rem;
+      margin-right: 0.5rem;
+    }
+    .summary-value {
+      color: #eee;
+      font-size: 0.9rem;
+    }
+    .summary-toggle {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      color: #00e5ff;
+      cursor: pointer;
+      width: fit-content;
+      max-width: 100%;
+    }
+    
+    .summary-toggle span {
+      font-weight: bold;
+      user-select: none;
+    }
+    
+    .summary-content {
+      display: none;
+      margin-top: 1rem;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+    
+    .summary-toggle.expanded .summary-content {
+      display: flex;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="topBar">
+    <header>
+      <h1 id="chartTitle" class="header-title">Energy Analytics Dashboard</h1>
+      <div class="summary-toggle" id="summaryToggle">
+        <span id="summaryToggleLabel">Insight Summary</span>
+        <div class="summary-content" id="summaryContent">
+          <div class="summary-item">
+            <span class="summary-label">Total Consumption:</span>
+            <span id="totalConsumption" class="summary-value">...</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Peak Demand:</span>
+            <span id="peakDemand" class="summary-value">...</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Largest Change:</span>
+            <span id="largestChange" class="summary-value">...</span>
+          </div>
+        </div>
+      </div>
+
+    </header>
+  </div>
+  
+  <div class="control-panel">
+    <div class="control-row">
+      <div class="control-group">
+        <label class="control-label">Select Meters</label>
+        <div id="meterButtons" class="toggle-group meter-buttons">
+          <!-- Buttons will be added dynamically -->
+          <div class="meter-buttons-loading">Loading meters...</div>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <label class="control-label">View Type</label>
+        <div class="toggle-group view-type-toggle">
+          <button class="toggle-btn active" data-value="consumption">Consumption</button>
+          <button class="toggle-btn" data-value="demand">Demand</button>
+        </div>
+
+      </div>
+    </div>
+    
+    <div class="control-row">
+      <div class="control-group">
+        <label for="startDate" class="control-label">Date Range</label>
+        <div class="date-range-container">
+          <div class="date-input-group">
+            <label for="startDate" class="control-label">Start Date</label>
+            <div class="date-input-wrapper">
+              <input type="text" id="startDate" class="input-text" placeholder="yyyy-mm-dd" />
+              <button class="calendar-btn hide-text">View calendar</button>
+            </div>
+          </div>
+          
+          <div class="date-input-group">
+            <label for="endDate" class="control-label">End Date</label>
+            <div class="date-input-wrapper">
+              <input type="text" id="endDate" class="input-text" placeholder="yyyy-mm-dd" />
+              <button class="calendar-btn hide-text">View calendar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="control-group" style="display: flex; align-items: flex-end;">
+        <div style="display: flex; gap: 1rem; width: 100%;">
+          <button id="quickRange" class="btn btn-secondary">Quick Range ▼</button>
+          <button id="updateChart" class="btn">Update Chart</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="control-row">
+      <div class="control-group view-toggle-container">
+        <span class="view-toggle-label">Display Mode:</span>
+        <div class="toggle-group display-mode-toggle">
+          <button id="viewAggregate" class="toggle-btn active" data-value="aggregate">Aggregate</button>
+          <button id="viewComparison" class="toggle-btn" data-value="comparison">Comparison</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  
+  <div class="chart-container">
+    <div id="chart"></div>
+  </div>
+  
+  <div id="tooltip"></div>
+
+  <script>
+(function() {
+  'use strict';
+
+  // Configuration
+  const config = {
+    defaultMeter: 'SEM101',
+    defaultViewType: 'consumption',
+    meterList: ['SEM101', 'SEM102', 'SEM103', 'SEM104', 'SEM105', 'SEM106', 'SEM107'],
+    quickRanges: [
+      { label: "Last 24 Hours", days: 1 },
+      { label: "Last 7 Days", days: 7 },
+      { label: "Last 30 Days", days: 30 },
+      { label: "This Month", custom: true },
+      { label: "Last Month", custom: true },
+      { label: "This Year", custom: true },
+      { label: "Last Year", custom: true }
+    ],
+    colorScheme: [
+      "#00e5ff", "#00ff99", "#ff4081", "#ffea00", "#ff6f00", "#7c4dff", 
+      "#18ffff", "#76ff03", "#f50057", "#00bcd4", "#ff3d00", "#d500f9"
+    ]
+  };
+
+  // Mock data generator
+  function generateMockData(meter, viewType, days = 30) {
+    const data = [];
+    const now = new Date();
+    const baseValue = viewType === 'consumption' ? Math.random() * 1000 + 500 : Math.random() * 50 + 25;
+    
+    for (let i = days; i >= 0; i--) {
+      const timestamp = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      // Add some realistic variation based on meter and time
+      const variation = (Math.sin(i * 0.1) + Math.random() * 0.5 - 0.25) * 0.3;
+      const meterMultiplier = config.meterList.indexOf(meter) * 0.1 + 1;
+      const value = Math.max(0, baseValue * meterMultiplier * (1 + variation));
+      
+      data.push({
+        meter: meter,
+        timestamp: timestamp,
+        value: Math.round(value * 100) / 100
+      });
+    }
+    return data;
+  }
+
+  // State
+  const state = {
+    currentMeter: config.defaultMeter,
+    currentViewType: config.defaultViewType,
+    displayMode: 'aggregate',
+    data: [],
+    rawMeterData: {},
+    isLoading: false,
+    selectedMeters: [config.defaultMeter],
+    hiddenMeters: []
+  };
+
+  let chart = null;
+
+  // DOM Elements
+  const dom = {
+    chartTitle: document.getElementById("chartTitle"),
+    meterSelect: document.getElementById("meter"),
+    viewTypeToggle: document.querySelector(".toggle-group"),
+    startDateInput: document.getElementById("startDate"),
+    endDateInput: document.getElementById("endDate"),
+    updateChartBtn: document.getElementById("updateChart"),
+    quickRangeBtn: document.getElementById("quickRange"),
+    chartContainer: document.querySelector(".chart-container"),
+    tooltip: document.getElementById("tooltip"),
+    viewAggregate: document.getElementById("viewAggregate"),
+    viewComparison: document.getElementById("viewComparison"),
+    totalConsumption: document.getElementById("totalConsumption"),
+    peakDemand: document.getElementById("peakDemand"),
+    largestChange: document.getElementById("largestChange")
+  };
+  
+  function updateSummary(filteredData, viewType) {
+    if (!filteredData || filteredData.length === 0) {
+      dom.totalConsumption.textContent = "N/A";
+      dom.peakDemand.textContent = "N/A";
+      dom.largestChange.textContent = "N/A";
+      return;
+    }
+  
+    // Calculate totals based on display mode
+    let totalConsumption = 0;
+    let peak = { value: 0, timestamp: null };
+    
+    if (state.displayMode === 'aggregate') {
+      totalConsumption = filteredData.reduce((sum, d) => sum + d.value, 0);
+      peak = filteredData.reduce((max, d) => d.value > max.value ? d : max, filteredData[0] || { value: 0 });
+    } else {
+      const allData = Object.values(state.rawMeterData).flat()
+        .filter(d => filteredData.some(fd => fd.timestamp.getTime() === d.timestamp.getTime()));
+      totalConsumption = allData.reduce((sum, d) => sum + d.value, 0);
+      peak = allData.reduce((max, d) => d.value > max.value ? d : max, allData[0] || { value: 0 });
+    }
+    
+    dom.totalConsumption.textContent = `${totalConsumption.toFixed(2)} ${viewType === "demand" ? "kW" : "kWh"}`;
+    
+    if (viewType === "demand" && peak.timestamp) {
+      const peakDate = new Date(peak.timestamp).toLocaleDateString();
+      dom.peakDemand.textContent = `${peak.value.toFixed(2)} kW on ${peakDate}`;
+    } else {
+      dom.peakDemand.textContent = "N/A";
+    }
+    
+    // Simplified largest change calculation
+    const meters = state.selectedMeters.filter(m => !state.hiddenMeters.includes(m));
+    if (meters.length > 1) {
+      const changes = meters.map(meter => {
+        const meterData = state.rawMeterData[meter] || [];
+        const recent = meterData.slice(-7).reduce((sum, d) => sum + d.value, 0);
+        const previous = meterData.slice(-14, -7).reduce((sum, d) => sum + d.value, 0);
+        const change = previous > 0 ? ((recent - previous) / previous) * 100 : 0;
+        return { meter, change };
+      });
+      
+      const largest = changes.reduce((max, curr) => 
+        Math.abs(curr.change) > Math.abs(max.change) ? curr : max, { meter: null, change: 0 }
+      );
+      
+      if (largest.meter) {
+        dom.largestChange.textContent = `${largest.meter} ${largest.change > 0 ? "↑" : "↓"} ${Math.abs(largest.change).toFixed(1)}%`;
+      } else {
+        dom.largestChange.textContent = "N/A";
+      }
+    } else {
+      dom.largestChange.textContent = "N/A";
+    }
+  }
+
+  // Utility Functions
+  function formatDate(date) {
+    return date.toISOString().split("T")[0];
+  }
+
+  function debounce(func, wait) {
+    let timeout;
+    return function() {
+      const context = this, args = arguments;
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        func.apply(context, args);
+      }, wait);
+    };
+  }
+
+  // Chart initialization with Apex Charts
+  function initChart() {
+    const options = {
+      chart: {
+        type: 'line',
+        height: 500,
+        background: 'transparent',
+        toolbar: {
+          show: true,
+          tools: {
+            download: true,
+            selection: true,
+            zoom: true,
+            zoomin: true,
+            zoomout: true,
+            pan: true,
+            reset: true
+          }
+        },
+        animations: {
+          enabled: true,
+          easing: 'easeinout',
+          speed: 800
+        },
+        theme: {
+          mode: 'dark'
+        }
+      },
+      series: [],
+      xaxis: {
+        type: 'datetime',
+        labels: {
+          style: {
+            colors: '#999'
+          }
+        }
+      },
+      yaxis: {
+        labels: {
+          style: {
+            colors: '#999'
+          },
+          formatter: function(value) {
+            return value.toFixed(1);
+          }
+        }
+      },
+      grid: {
+        borderColor: '#333'
+      },
+      tooltip: {
+        theme: 'dark',
+        x: {
+          format: 'MMM dd, yyyy HH:mm'
+        }
+      },
+      legend: {
+        show: true,
+        position: 'top',
+        labels: {
+          colors: '#eee'
+        }
+      },
+      colors: config.colorScheme,
+      stroke: {
+        width: 2,
+        curve: 'smooth'
+      }
+    };
+
+    chart = new ApexCharts(document.querySelector("#chart"), options);
+    chart.render();
+  }
+
+  function setLoading(isLoading) {
+    state.isLoading = isLoading;
+    dom.updateChartBtn.disabled = isLoading;
+    dom.updateChartBtn.textContent = isLoading ? "Loading..." : "Update Chart";
+    if (isLoading) {
+      dom.updateChartBtn.classList.remove('highlight');
+    }
+    
+    if (chart) {
+      if (isLoading) {
+        chart.updateSeries([]);
+      }
+    }
+  }
+
+  function filterData(startDate, endDate) {
+    if (!startDate || !endDate) return state.data;
+    return state.data.filter(d => d.timestamp >= startDate && d.timestamp <= endDate);
+  }
+
+  function aggregateData() {
+    const aggregatedData = {};
+    const allData = Object.values(state.rawMeterData).flat();
+    
+    allData.forEach(d => {
+      const key = d.timestamp.getTime();
+      if (!aggregatedData[key]) {
+        aggregatedData[key] = {
+          timestamp: d.timestamp,
+          value: 0,
+          meterValues: {}
+        };
+      }
+      aggregatedData[key].value += d.value;
+      aggregatedData[key].meterValues[d.meter] = d.value;
+    });
+    
+    return Object.values(aggregatedData).sort((a, b) => a.timestamp - b.timestamp);
+  }
+
+  function promptUpdateHighlight() {
+    const start = dom.startDateInput.value;
+    const end = dom.endDateInput.value;
+    if (start && end) {
+      dom.updateChartBtn.classList.add("highlight");
+      setTimeout(() => {
+        dom.updateChartBtn.classList.remove("highlight");
+      }, 3000);
+    }
+  }
+
+  function initQuickRangeDropdown() {
+    const dropdown = document.createElement("div");
+    dropdown.className = "quick-range-dropdown";
+    dropdown.style.display = "none";
+
+    config.quickRanges.forEach(range => {
+      const item = document.createElement("button");
+      item.className = "quick-range-item";
+      item.textContent = range.label;
+      item.addEventListener("click", () => {
+        setQuickRange(range);
+        dropdown.style.display = "none";
+      });
+      dropdown.appendChild(item);
+    });
+
+    document.body.appendChild(dropdown);
+
+    dom.quickRangeBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const rect = e.target.getBoundingClientRect();
+      dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
+      dropdown.style.position = "absolute";
+      dropdown.style.left = `${rect.left}px`;
+      dropdown.style.top = `${rect.bottom + window.scrollY}px`;
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!dropdown.contains(e.target) && e.target !== dom.quickRangeBtn) {
+        dropdown.style.display = "none";
+      }
+    });
+  }
+
+  function setQuickRange(range) {
+    const end = new Date();
+    const start = new Date();
+
+    if (range.days) {
+      start.setDate(end.getDate() - range.days);
+    } else if (range.label === "This Month") {
+      start.setDate(1);
+    } else if (range.label === "Last Month") {
+      end.setDate(1);
+      end.setDate(0);
+      start.setDate(1);
+      start.setMonth(start.getMonth() - 1);
+    } else if (range.label === "This Year") {
+      start.setMonth(0);
+      start.setDate(1);
+    } else if (range.label === "Last Year") {
+      start.setFullYear(end.getFullYear() - 1);
+      start.setMonth(0);
+      start.setDate(1);
+      end.setFullYear(end.getFullYear() - 1);
+      end.setMonth(11);
+      end.setDate(31);
+    }
+
+    dom.startDateInput.value = formatDate(start);
+    dom.endDateInput.value = formatDate(end);
+    handleDateChange();
+    setTimeout(() => {
+      dom.updateChartBtn.click();
+    }, 100);
+  }
+
+  function initDatePickers() {
+    // Check if Flatpickr is available
+    if (typeof flatpickr !== 'undefined') {
+      // Initialize start date picker
+      flatpickr(dom.startDateInput, {
+        dateFormat: 'Y-m-d',
+        defaultDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+        onChange: function() {
+          handleDateChange();
+        },
+        theme: 'dark',
+        clickOpens: true,
+        allowInput: true
+      });
+
+      // Initialize end date picker
+      flatpickr(dom.endDateInput, {
+        dateFormat: 'Y-m-d',
+        defaultDate: new Date(), // Today
+        onChange: function() {
+          handleDateChange();
+        },
+        theme: 'dark',
+        clickOpens: true,
+        allowInput: true
+      });
+
+      // Hide calendar buttons since Flatpickr handles clicks on input
+      document.querySelectorAll('.calendar-btn').forEach(btn => {
+        btn.style.display = 'none';
+      });
+
+      // Set input type to text for better Flatpickr integration
+      dom.startDateInput.setAttribute('type', 'text');
+      dom.endDateInput.setAttribute('type', 'text');
+    } else {
+      // Fallback to HTML5 date inputs
+      dom.startDateInput.setAttribute('type', 'date');
+      dom.endDateInput.setAttribute('type', 'date');
+      
+      const today = new Date();
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(today.getDate() - 7);
+      dom.startDateInput.value = formatDate(oneWeekAgo);
+      dom.endDateInput.value = formatDate(today);
+      
+      document.querySelectorAll('.calendar-btn').forEach(btn => {
+        btn.style.display = 'none';
+      });
+    }
+
+    dom.startDateInput.addEventListener('change', handleDateChange);
+    dom.endDateInput.addEventListener('change', handleDateChange);
+  }
+
+  function handleDateChange() {
+    const startFilled = dom.startDateInput.value !== '';
+    const endFilled = dom.endDateInput.value !== '';
+    dom.updateChartBtn.disabled = !(startFilled && endFilled);
+    if (startFilled && endFilled) {
+      dom.updateChartBtn.classList.add('highlight');
+    } else {
+      dom.updateChartBtn.classList.remove('highlight');
+    }
+  }
+
+  function initMeterButtons() {
+    const container = document.getElementById('meterButtons');
+    container.innerHTML = '';
+    config.meterList.forEach(meter => {
+      const btn = document.createElement('button');
+      btn.className = 'meter-btn';
+      btn.textContent = meter;
+      btn.dataset.meter = meter;
+      if (meter === config.defaultMeter) {
+        btn.classList.add('active');
+        state.selectedMeters = [meter];
+      }
+      btn.addEventListener('click', function() {
+        this.classList.toggle('active');
+        updateSelectedMeters();
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  function updateSelectedMeters() {
+    const activeButtons = document.querySelectorAll('.meter-btn.active');
+    state.selectedMeters = Array.from(activeButtons).map(btn => btn.dataset.meter);
+    state.hiddenMeters = []; // Reset hidden meters when selection changes
+    if (state.selectedMeters.length > 0) {
+      loadData();
+    } else {
+      showEmptyState("Please select at least one meter");
+    }
+  }
+
+  function initViewTypeToggle() {
+  const toggleBtns = document.querySelectorAll(".view-type-toggle .toggle-btn");
+  toggleBtns.forEach(btn => {
+    btn.addEventListener("click", function() {
+      toggleBtns.forEach(b => b.classList.remove("active"));
+      this.classList.add("active");
+      state.currentViewType = this.dataset.value;
+      state.rawMeterData = {}; // Clear data on view type change
+      loadData();
+    });
+  });
+
+  // Set initial active state explicitly
+  document.querySelector(`.view-type-toggle .toggle-btn[data-value="${config.defaultViewType}"]`).classList.add("active");
+}
+
+
+  function initDisplayModeToggle() {
+  const aggregateBtn = document.querySelector(".display-mode-toggle #viewAggregate");
+  const comparisonBtn = document.querySelector(".display-mode-toggle #viewComparison");
+
+  aggregateBtn.addEventListener("click", function () {
+    if (state.displayMode !== 'aggregate') {
+      state.displayMode = 'aggregate';
+      aggregateBtn.classList.add('active');
+      comparisonBtn.classList.remove('active');
+      state.hiddenMeters = [];
+      updateChart();
+    }
+  });
+
+  comparisonBtn.addEventListener("click", function () {
+    if (state.displayMode !== 'comparison') {
+      state.displayMode = 'comparison';
+      comparisonBtn.classList.add('active');
+      aggregateBtn.classList.remove('active');
+      updateChart();
+    }
+  });
+}
+
+
+  function loadData() {
+    if (!state.selectedMeters || state.selectedMeters.length === 0) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    state.rawMeterData = {};
+
+    // Generate mock data for each selected meter
+    setTimeout(() => {
+      state.selectedMeters.forEach(meter => {
+        state.rawMeterData[meter] = generateMockData(meter, state.currentViewType, 30);
+      });
+
+      state.data = state.displayMode === 'aggregate' 
+        ? aggregateData() 
+        : Object.values(state.rawMeterData).flat().sort((a, b) => a.timestamp - b.timestamp);
+
+      setLoading(false);
+      updateChart();
+    }, 500); // Simulate loading delay
+  }
+
+  function updateChart() {
+    if (state.isLoading || !chart || state.selectedMeters.length === 0) return;
+  
+    const startDate = new Date(dom.startDateInput.value);
+    const endDate = new Date(dom.endDateInput.value);
+    if (isNaN(startDate) || isNaN(endDate)) {
+      return;
+    }
+  
+    state.data = state.displayMode === 'aggregate' 
+      ? aggregateData() 
+      : Object.values(state.rawMeterData).flat().sort((a, b) => a.timestamp - b.timestamp);
+  
+    const filteredData = filterData(startDate, endDate);
+    drawChart(filteredData, state.currentViewType);
+    updateSummary(filteredData, state.currentViewType);
+    dom.chartTitle.textContent = `Energy Analytics - ${state.currentViewType.charAt(0).toUpperCase() + state.currentViewType.slice(1)} (${state.displayMode.charAt(0).toUpperCase() + state.displayMode.slice(1)} Mode)`;
+    
+    dom.updateChartBtn.classList.remove("highlight");
+  }
+
+  function drawChart(filteredData, viewType) {
+    if (state.isLoading || !chart) return;
+    
+    if (!filteredData || filteredData.length === 0) {
+      chart.updateSeries([]);
+      return;
+    }
+
+    const unit = viewType === "demand" ? "kW" : "kWh";
+    let series = [];
+
+    if (state.displayMode === 'aggregate') {
+      series = [{
+        name: `Total ${viewType.charAt(0).toUpperCase() + viewType.slice(1)}`,
+        data: filteredData.map(d => [d.timestamp.getTime(), d.value])
+      }];
+    } else {
+      const activeMeters = state.selectedMeters.filter(meter => !state.hiddenMeters.includes(meter));
+      
+      series = activeMeters.map(meter => {
+        const meterData = (state.rawMeterData[meter] || []).filter(d =>
+          d.timestamp >= filteredData[0].timestamp &&
+          d.timestamp <= filteredData[filteredData.length - 1].timestamp
+        );
+        
+        return {
+          name: meter,
+          data: meterData.map(d => [d.timestamp.getTime(), d.value])
+        };
+      });
+    }
+
+    chart.updateOptions({
+      yaxis: {
+        title: {
+          text: unit,
+          style: {
+            color: '#00e5ff'
+          }
+        },
+        labels: {
+          style: {
+            colors: '#999'
+          },
+          formatter: function(value) {
+            return value.toFixed(1);
+          }
+        }
+      },
+      tooltip: {
+        y: {
+          formatter: function(value) {
+            return value.toFixed(2) + ' ' + unit;
+          }
+        }
+      }
+    });
+
+    chart.updateSeries(series);
+  }
+
+  function handleResize() {
+    if (chart) {
+      chart.resize();
+    }
+  }
+
+  // Initialize
+  function init() {
+    initChart(); // Initialize Apex Charts
+    initMeterButtons();
+    initViewTypeToggle();
+    initDisplayModeToggle();
+    initDatePickers();
+    initQuickRangeDropdown();
+    dom.updateChartBtn.addEventListener("click", updateChart);
+
+    window.addEventListener("resize", debounce(handleResize, 200));
+
+    document.getElementById("summaryToggle").addEventListener("click", function () {
+      this.classList.toggle("expanded");
+    });
+
+    loadData();
+  }
+
+  // Initialize when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+</body>
+</html>

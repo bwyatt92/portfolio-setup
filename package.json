@@ -6,7 +6,7 @@
     "apps/*"
   ],
   "scripts": {
-    "build": "cd apps/center-dashboard && npm install && npm run build",
+    "build": "cd apps/center-dashboard && npm run vercel-build",
     "dev": "cd apps/center-dashboard && npm run dev",
     "dev:center": "cd apps/center-dashboard && npm run dev",
     "dev:energy": "cd apps/energy-dashboard && npm run dev",

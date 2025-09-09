@@ -5,8 +5,14 @@
       "src": "apps/center-dashboard/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "apps/center-dashboard/dist"
+        "distDir": "dist"
       }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "apps/center-dashboard/dist/$1"
     }
   ]
 }
